@@ -1,0 +1,63 @@
+/dts-v1/;
+
+/ {
+	partitions: partitions {
+		parts = <0x08>;
+		part-0 = <&boot>;
+		part-1 = <&overlay>;
+		part-2 = <&data>;
+		part-3 = <&kernela>;
+		part-4 = <&systema>;
+		part-5 = <&kernelb>;
+		part-6 = <&systemb>;
+		part-7 = <&bootinfo>;
+
+		boot: boot {
+			pname = "boot";
+			size = <0x00 0x4000000>;
+			mask = <0x01>;
+		};
+
+		overlay: overlay {
+			pname = "overlay";
+			size = <0x00 0x8000000>;
+			mask = <0x04>;
+		};
+
+		data: data {
+			pname = "data";
+			size = <0xffffffff 0xffffffff>;
+			mask = <0x04>;
+		};
+
+		kernela: kernela {
+			pname = "kernela";
+			size = <0x00 0x4000000>;
+			mask = <0x04>;
+		};
+
+		systema: systema {
+			pname = "systema";
+			size = <0x00 0x10000000>;
+			mask = <0x04>;
+		};
+
+		kernelb: kernelb {
+			pname = "kernelb";
+			size = <0x00 0x4000000>;
+			mask = <0x04>;
+		};
+
+		systemb: systemb {
+			pname = "systemb";
+			size = <0x00 0x10000000>;
+			mask = <0x04>;
+		};
+
+		bootinfo: bootinfo {
+			pname = "bootinfo";
+			size = <0x00 0x800000>;
+			mask = <0x04>;
+		};
+	};
+};
