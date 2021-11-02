@@ -1,5 +1,3 @@
-/dts-v1/;
-
 / {
 	partitions: partitions {
 		parts = <1>;

@@ -28,6 +28,3 @@ extract_partition() {
 	fi
 }
 
-create_partitions_in_dts() {
-	
-}

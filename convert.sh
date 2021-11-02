@@ -1,38 +1,95 @@
 #!/bin/bash
 
-INPUT="$1"
+source lib.sh
 
-if [ $# -lt 2 ]; then
+if [ $# -lt 3 ]; then
     echo Usage:
-    echo "	$0 <input> <type>"
+    echo "	$0 <input> <h1|d1> <type> [compress]"
     echo
-    echo "		input - input image"
-    echo "		type  - partition type. supported: haos, armbian"
+    echo "		input		- input image"
+    echo "		h1|d1|j80|j100	- select controller D1 or H1"
+    echo "		type		- partition type. supported: haos, armbian"
+    echo "		compress	- compress output to xz"
     exit
 fi
 
-TMP=`mktemp -d`
-
-EXT="${INPUT:${#INPUT}-3:3}"
-if [[ ".xz" == "${EXT}" ]]; then
-    INPUT="${INPUT::-3}"
-    echo unzip "$INPUT$EXT"
-    xzcat "$INPUT$EXT" >"$INPUT"
+if [[ "$2" == "h1" || "$2" == "j80" ]]; then
+  DTS="meson-gxl-s905w-jethome-jethub-j80.dts"
+  CNAME="j80"
+elif [[ "$2" == "d1" || "$2" == "j100" ]]; then
+  DTS="meson-axg-jethome-jethub-j100.dts"
+  CNAME="j100"
+else
+  echo "ERROR: unknown controller"
+  exit
 fi
 
+if [[ "$3" == "haos" ]]; then
+  DTI="partition_haos.dtsi"
+  CPART="haos"
+elif [[ "$3" == "armbian" ]]; then
+  DTI="partition_arm.dtsi"
+  CPART="armbian"
+else
+  echo "ERROR: unknown partition table"
+  exit
+fi
 
-#LOOP="$(sudo losetup -f)"
+if [[ "$4" == "compress" ]]; then
+    COMPRESS=yes
+fi
 
-#echo Mount loop device "$LOOP"
-
-#sudo losetup "$LOOP" "$INPUT"
-
-#sudo losetup -d "$LOOP"
-
-
-cpp -nostdinc -I . -I ./include -I arch  -undef -x assembler-with-cpp $1 -o $1.preprocess
-
-dtc -I dts -O dtb -p 0x1000 $1.preprocess -o $1.dtb
+[[ ! -e $1 ]] && echo No file found && exit
+echo "Selected $CNAME controller with $CPART partition table"
 
 
-rm -fr $TMP
+INPUT=$(readlink -f $1)
+TMP=$(mktemp -d)
+DTB="$TMP/${DTS::-4}.dtb"
+EXT="${INPUT:${#INPUT}-3:3}"
+if [[ ".xz" == "${EXT}" ]]; then
+    INPUTE="${INPUT::-3}"
+    echo "Found compressed image. Decompress $INPUTE$EXT"
+    INPUT="$TMP/$(basename $INPUTE)"
+    xzcat "$INPUTE$EXT" >"$INPUT"
+fi
+
+mkdir -p output
+OUTIMG=$(basename $INPUT)
+
+cp "dts/$DTS" "$TMP/$DTS"
+cp "dts/$DTI" "$TMP/$DTI"
+sed -i "s/partition.dtsi/$DTI/g" "$TMP/$DTS"
+
+cpp -nostdinc -I dts -I dts/include -undef -x assembler-with-cpp "$TMP/$DTS" "$TMP/$DTS.preprocess"
+dtc -I dts -O dtb -p 0x1000 -qqq "$TMP/$DTS.preprocess" -o "$DTB"
+FDISK=$(/usr/sbin/fdisk -l "$INPUT" | grep -P -A 100 "Device.+Boot.+Start.+End.+Sectors.+Size.+Id.+Type" | sed -- "s/\*//g" | grep "$INPUT"| grep -v Extended)
+
+echo +! Device	! Start	! End	! Sectors	! Size	! Id	! Type	!-
+i=1
+while read -r line; do
+    read -r Device Start End Sectors Size Id Type <<<$line
+    Device=$(echo $(basename $Device) | sed --  "s/$(basename $INPUT)//g")
+    echo +! $Device	! $Start	! $End	! $Sectors	! $Size	! $Id	! $Type	!-
+    extract_partition "$INPUT" $Start $Sectors "$TMP/part-$i.img"
+    i=$((i + 1))
+done <<< "$FDISK"
+
+cp "src/$CNAME/platform.conf" "$TMP"
+
+cc -o $TMP/dtbTool dtbtools/dtbTool.c
+$TMP/dtbTool -o "$TMP/_aml_dtb.PARTITION" "$TMP"
+
+cp "src/$CNAME/image.$CPART.cfg" "$TMP/image.cfg"
+echo cp "src/$CNAME/u-boot.$CPART.bin" "$TMP/u-boot.bin"
+cp "src/$CNAME/u-boot.$CPART.bin" "$TMP/u-boot.bin"
+cp "src/$CNAME/DDR.USB" "$TMP"
+cp "src/$CNAME/UBOOT.USB" "$TMP"
+
+./tools/aml_image_v2_packer_new -r "$TMP/image.cfg" "$TMP" output/$OUTIMG
+
+if [[ "$COMPRESS" == "yes" ]]; then
+    xz --threads=0 output/$OUTIMG
+fi
+
+rm -rf $TMP
