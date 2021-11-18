@@ -56,6 +56,13 @@ fi
 
 mkdir -p output
 OUTIMG=$(basename $INPUT)
+OUEXT="${OUTIMG:${#OUTIMG}-4:4}"
+if [[ ".img" == "${OUEXT}" ]]; then
+    OUTIMGE="${OUTIMG::-4}"
+    OUTIMG="${OUTIMGE}.burn${OUEXT}"
+else
+    OUTIMG="${OUTIMG}.burn"
+fi
 
 cp "dts/$DTS" "$TMP/$DTS"
 cp "dts/$DTI" "$TMP/$DTI"
