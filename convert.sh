@@ -39,6 +39,12 @@ if [[ "$4" == "compress" ]]; then
     COMPRESS=yes
 fi
 
+if [[ -e "$5" ]]; then
+    UBOOT="$5"
+else
+    UBOOT="src/$CNAME/u-boot.$CPART.bin"
+fi
+
 [[ ! -e $1 ]] && echo No file found && exit
 echo "Selected $CNAME controller with $CPART partition table"
 
@@ -88,8 +94,8 @@ cc -o $TMP/dtbTool dtbtools/dtbTool.c
 $TMP/dtbTool -o "$TMP/_aml_dtb.PARTITION" "$TMP"
 
 cp "src/$CNAME/image.$CPART.cfg" "$TMP/image.cfg"
-echo cp "src/$CNAME/u-boot.$CPART.bin" "$TMP/u-boot.bin"
-cp "src/$CNAME/u-boot.$CPART.bin" "$TMP/u-boot.bin"
+echo cp "$UBOOT" "$TMP/u-boot.bin"
+cp "$UBOOT" "$TMP/u-boot.bin"
 cp "src/$CNAME/DDR.USB" "$TMP"
 cp "src/$CNAME/UBOOT.USB" "$TMP"
 
