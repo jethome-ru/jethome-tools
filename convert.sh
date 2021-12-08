@@ -45,6 +45,8 @@ else
     UBOOT="src/$CNAME/u-boot.$CPART.bin"
 fi
 
+echo "UBOOT set to ${UBOOT}"
+
 [[ ! -e $1 ]] && echo No file found && exit
 echo "Selected $CNAME controller with $CPART partition table"
 
@@ -57,7 +59,7 @@ if [[ ".xz" == "${EXT}" ]]; then
     INPUTE="${INPUT::-3}"
     echo "Found compressed image. Decompress $INPUTE$EXT"
     INPUT="$TMP/$(basename $INPUTE)"
-    xzcat "$INPUTE$EXT" >"$INPUT"
+    xzcat "${INPUTE}${EXT}" >"$INPUT"
 fi
 
 mkdir -p output
