@@ -4,7 +4,7 @@ source lib.sh
 
 if [ $# -lt 3 ]; then
     echo Usage:
-    echo "	$0 <input> <h1|d1> <type> [compress]"
+    echo "	$0 <input> <h1|d1> <type> [compress] [uboot]"
     echo
     echo "		input		- input image"
     echo "		h1|d1|j80|j100	- select controller D1 or H1"
