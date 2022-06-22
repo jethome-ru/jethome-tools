@@ -104,7 +104,11 @@ cp "src/$CNAME/UBOOT.USB" "$TMP"
 ./tools/aml_image_v2_packer_new -r "$TMP/image.cfg" "$TMP" output/$OUTIMG
 
 if [[ "$COMPRESS" == "yes" ]]; then
-    xz --threads=0 output/$OUTIMG
+    cd output
+    zip "$OUTIMG.zip" "$OUTIMG"
+    cd ..
+    rm "output/$OUTIMG"
+    #xz --threads=0 "output/$OUTIMG"
 fi
 
 rm -rf $TMP
