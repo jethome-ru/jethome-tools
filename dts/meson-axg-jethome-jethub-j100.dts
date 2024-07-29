@@ -156,6 +156,7 @@
 		unifykey-index-3 = <&keysn_3>;
 		unifykey-index-4 = <&keysn_4>;
 		unifykey-index-5 = <&keysn_5>;
+		unifykey-index-6 = <&keysn_6>;
 
 		keysn_0: key_0 {
 			key-name = "usid";
@@ -188,6 +189,11 @@
 			key-name = "deviceid";
 			key-device = "normal";
 			key-permit = "read","write","del";
+		};
+		keysn_6:key_6 {
+			key-name = "secure_boot_set";
+			key-device = "efuse";
+			key-permit = "write";
 		};
 	}; //End unifykey
 };
@@ -317,9 +323,9 @@
 
 /* UART Wireless module */
 &uart_AO_B {
-        status = "okay";
-        pinctrl-0 = <&uart_ao_b_pins>;
-        pinctrl-names = "default";
+	status = "okay";
+	pinctrl-0 = <&uart_ao_b_pins>;
+	pinctrl-names = "default";
 };
 
 &usb {
@@ -341,6 +347,8 @@
 	read_cmd = <0x82000030>;
 	write_cmd = <0x82000031>;
 	get_max_cmd = <0x82000033>;
+	mem_in_base_cmd = <0x82000020>;
+	mem_out_base_cmd = <0x82000021>;
 	key = <&efusekey>;
 	clock-names = "efuse_clk";
 };
