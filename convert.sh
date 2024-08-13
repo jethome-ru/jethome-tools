@@ -49,7 +49,8 @@ fi
 if [[ -e "$5" ]]; then
     UBOOT="$5"
 else
-    UBOOT="src/$CNAME/u-boot.$CPART.bin"
+    echo "Error: u-boot binary did not found"
+    exit 1
 fi
 
 echo "UBOOT set to ${UBOOT}"
@@ -97,16 +98,16 @@ while read -r line; do
     i=$((i + 1))
 done <<< "$FDISK"
 
-cp "src/$CNAME/platform.conf" "$TMP"
+cp "bins/$CNAME/platform.conf" "$TMP"
 
 cc -o $TMP/dtbTool dtbtools/dtbTool.c
 $TMP/dtbTool -o "$TMP/_aml_dtb.PARTITION" "$TMP"
 
-cp "src/$CNAME/image.$CPART.cfg" "$TMP/image.cfg"
+cp "bins/image.$CPART.cfg" "$TMP/image.cfg"
 echo cp "$UBOOT" "$TMP/u-boot.bin"
 cp "$UBOOT" "$TMP/u-boot.bin"
-cp "src/$CNAME/DDR.USB" "$TMP"
-cp "src/$CNAME/UBOOT.USB" "$TMP"
+cp "bins/$CNAME/DDR.USB" "$TMP"
+cp "bins/$CNAME/UBOOT.USB" "$TMP"
 
 ./tools/aml_image_v2_packer_new -r "$TMP/image.cfg" "$TMP" output/$OUTIMG
 
