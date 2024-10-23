@@ -149,7 +149,7 @@
 	unifykey {
 		compatible = "amlogic, unifykey";
 		status = "ok";
-		unifykey-num = <6>;
+		unifykey-num = <7>;
 		unifykey-index-0 = <&keysn_0>;
 		unifykey-index-1 = <&keysn_1>;
 		unifykey-index-2 = <&keysn_2>;
